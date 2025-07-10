@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { streamGPT } from "../utils/openai";
+import 'katex/dist/katex.min.css';
+import { BlockMath, InlineMath } from 'react-katex';
 
 export default function ChatBox({ subject = "general learning" }) {
   const [chat, setChat] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -62,6 +65,48 @@ export default function ChatBox({ subject = "general learning" }) {
     }
   };
 
+  // Helper to render math using react-katex
+  function renderWithMath(content) {
+    // Render block math: $$...$$
+    const blockMathRegex = /\$\$([\s\S]+?)\$\$/g;
+    // Render inline math: \(...\) or $...$
+    const inlineMathRegex = /\\\((.+?)\\\)|\$(.+?)\$/g;
+
+    let elements = [];
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+    // Block math
+    while ((match = blockMathRegex.exec(content))) {
+      if (match.index > lastIndex) {
+        elements.push(content.slice(lastIndex, match.index));
+      }
+      elements.push(<BlockMath key={key++}>{match[1]}</BlockMath>);
+      lastIndex = blockMathRegex.lastIndex;
+    }
+    if (lastIndex < content.length) {
+      content = content.slice(lastIndex);
+    } else {
+      content = "";
+    }
+    // Inline math
+    let lastInlineIndex = 0;
+    let inlineElements = [];
+    while ((match = inlineMathRegex.exec(content))) {
+      if (match.index > lastInlineIndex) {
+        inlineElements.push(content.slice(lastInlineIndex, match.index));
+      }
+      const mathContent = match[1] || match[2];
+      inlineElements.push(<InlineMath key={key++}>{mathContent}</InlineMath>);
+      lastInlineIndex = inlineMathRegex.lastIndex;
+    }
+    if (lastInlineIndex < content.length) {
+      inlineElements.push(content.slice(lastInlineIndex));
+    }
+    elements = elements.concat(inlineElements);
+    return elements.length > 0 ? elements : content;
+  }
+
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
       {/* Chat Header */}
@@ -71,7 +116,7 @@ export default function ChatBox({ subject = "general learning" }) {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 p-4 overflow-y-auto max-h-96">
+      <div className="flex-1 p-4 overflow-y-auto max-h-96" ref={chatContainerRef}>
         {chat.length === 0 && (
           <div className="text-center text-gray-500 mt-8">
             <div className="text-4xl mb-2">🤖</div>
@@ -90,7 +135,7 @@ export default function ChatBox({ subject = "general learning" }) {
                 message.role === "user" ? "user" : "assistant"
               }`}
             >
-              <div className="whitespace-pre-wrap">{message.content}</div>
+              <div className="whitespace-pre-wrap">{renderWithMath(message.content)}</div>
               {isLoading && index === chat.length - 1 && (
                 <div className="inline-block w-2 h-4 bg-blue-500 animate-pulse ml-1"></div>
               )}
