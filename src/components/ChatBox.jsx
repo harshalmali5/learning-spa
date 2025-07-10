@@ -9,14 +9,29 @@ export default function ChatBox({ subject = "general learning" }) {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const [isUserAtBottom, setIsUserAtBottom] = useState(true);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [chat]);
+    const chatContainer = chatContainerRef.current;
+    if (!chatContainer) return;
+    const handleScroll = () => {
+      const threshold = 60; // px from bottom
+      const isAtBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
+      setIsUserAtBottom(isAtBottom);
+    };
+    chatContainer.addEventListener('scroll', handleScroll);
+    return () => chatContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (isUserAtBottom) {
+      scrollToBottom();
+    }
+  }, [chat, isUserAtBottom]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
