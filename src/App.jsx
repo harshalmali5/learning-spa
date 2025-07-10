@@ -156,9 +156,9 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 flex justify-center items-center" style={{ minHeight: '600px' }}>
             {currentView === "chat" && (
-              <div className="h-[600px] slide-up">
+              <div className="w-full max-w-2xl h-[600px] slide-up flex items-center justify-center">
                 <ChatBox subject={subject} />
               </div>
             )}

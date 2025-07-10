@@ -123,15 +123,15 @@ export default function ChatBox({ subject = "general learning" }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
+    <div className="flex flex-col h-full min-h-[500px] bg-white rounded-lg shadow-lg">
       {/* Chat Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-lg">
         <h3 className="text-lg font-semibold">AI Tutor - {subject}</h3>
-        <p className="text-sm opacity-90">Ask me anything about {subject}!</p>
+        <p className="text-sm opacity-90">Ask me anything about {subject}!"</p>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 p-4 overflow-y-auto max-h-96" ref={chatContainerRef}>
+      <div className="flex-1 p-4 overflow-y-auto" ref={chatContainerRef} style={{ minHeight: 0 }}>
         {chat.length === 0 && (
           <div className="text-center text-gray-500 mt-8">
             <div className="text-4xl mb-2">🤖</div>
