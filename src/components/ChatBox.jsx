@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { streamGPT } from "../utils/openai";
 import 'katex/dist/katex.min.css';
 import { BlockMath, InlineMath } from 'react-katex';
@@ -9,29 +9,6 @@ export default function ChatBox({ subject = "general learning" }) {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
   const chatContainerRef = useRef(null);
-  const [isUserAtBottom, setIsUserAtBottom] = useState(true);
-
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    const chatContainer = chatContainerRef.current;
-    if (!chatContainer) return;
-    const handleScroll = () => {
-      const threshold = 60; // px from bottom
-      const isAtBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
-      setIsUserAtBottom(isAtBottom);
-    };
-    chatContainer.addEventListener('scroll', handleScroll);
-    return () => chatContainer.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (isUserAtBottom) {
-      scrollToBottom();
-    }
-  }, [chat, isUserAtBottom]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -123,11 +100,11 @@ export default function ChatBox({ subject = "general learning" }) {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-white rounded-lg shadow-lg">
+    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg flex flex-col h-full min-h-[500px]">
       {/* Chat Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-lg">
         <h3 className="text-lg font-semibold">AI Tutor - {subject}</h3>
-        <p className="text-sm opacity-90">Ask me anything about {subject}!"</p>
+        <p className="text-sm opacity-90">Ask me anything about {subject}!</p>
       </div>
 
       {/* Chat Messages */}
@@ -136,7 +113,7 @@ export default function ChatBox({ subject = "general learning" }) {
           <div className="text-center text-gray-500 mt-8">
             <div className="text-4xl mb-2">🤖</div>
             <p>Start a conversation with your AI tutor!</p>
-            <p className="text-sm mt-2">Try asking: "Can you explain this topic?"</p>
+            <p className="text-sm mt-2">Try asking: \"Can you explain this topic?\"</p>
           </div>
         )}
         
