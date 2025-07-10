@@ -21,14 +21,6 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {
-    // Disable body scroll when app is mounted
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
   const handleApiKeySubmit = () => {
     if (apiKey.trim()) {
       localStorage.setItem("openai_api_key", apiKey);
@@ -65,7 +57,7 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* API Key Modal */}
       {showApiKeyModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -164,9 +156,9 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content Area */}
-          <div className="lg:col-span-2 flex justify-center items-center" style={{ minHeight: '600px' }}>
+          <div className="lg:col-span-2 space-y-6">
             {currentView === "chat" && (
-              <div className="w-full max-w-xl h-[600px] slide-up flex items-center justify-center">
+              <div className="h-[600px] slide-up">
                 <ChatBox subject={subject} />
               </div>
             )}
