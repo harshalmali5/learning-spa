@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { streamGPT } from "../utils/openai";
 import 'katex/dist/katex.min.css';
 import { BlockMath, InlineMath } from 'react-katex';
+import * as faceapi from "face-api.js";
 
 export default function ChatBox({ subject = "general learning" }) {
   const [chat, setChat] = useState([]);
@@ -9,6 +10,70 @@ export default function ChatBox({ subject = "general learning" }) {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const [emotion, setEmotion] = useState("");
+  const videoRef = useRef(null);
+
+  // Load face-api.js models and start webcam
+  useEffect(() => {
+    const loadModels = async () => {
+      const MODEL_URL = "/models";
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+    };
+    loadModels();
+  }, []);
+
+  useEffect(() => {
+    const startVideo = () => {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          if (videoRef.current) videoRef.current.srcObject = stream;
+        })
+        .catch((err) => {
+          console.error("Error accessing webcam:", err);
+        });
+    };
+    startVideo();
+  }, []);
+
+  // Detect emotion
+  useEffect(() => {
+    let interval;
+    const detect = async () => {
+      if (
+        videoRef.current &&
+        faceapi.nets.tinyFaceDetector.params &&
+        faceapi.nets.faceExpressionNet.params
+      ) {
+        const detections = await faceapi
+          .detectSingleFace(
+            videoRef.current,
+            new faceapi.TinyFaceDetectorOptions()
+          )
+          .withFaceExpressions();
+        if (detections && detections.expressions) {
+          // Map face-api.js expressions to your desired set
+          const mapping = {
+            angry: "Frustrated",
+            disgusted: "Frustrated",
+            fearful: "Confused",
+            sad: "Bored",
+            happy: "Engaged",
+            surprised: "Engaged",
+            neutral: "Bored"
+          };
+          const sorted = Object.entries(detections.expressions).sort(
+            (a, b) => b[1] - a[1]
+          );
+          const detected = sorted[0][0];
+          setEmotion(mapping[detected] || "");
+        }
+      }
+    };
+    interval = setInterval(detect, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -21,11 +86,9 @@ export default function ChatBox({ subject = "general learning" }) {
     setIsLoading(true);
 
     const messages = [
-      { 
-        role: "system", 
-        content: `You are an expert ${subject} tutor. Be encouraging, patient, and helpful. 
-        Provide clear explanations and ask follow-up questions to engage the student. 
-        Keep responses concise but informative.` 
+      {
+        role: "system",
+        content: `You are an expert ${subject} tutor. Be encouraging, patient, and helpful. Provide clear explanations and ask follow-up questions to engage the student. Keep responses concise but informative.\nThe user currently appears: ${emotion || "Unknown"}. Respond accordingly. Emotions: Frustrated, Confused, Bored, Engaged.`
       },
       ...chat,
       userMessage
@@ -100,13 +163,29 @@ export default function ChatBox({ subject = "general learning" }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg flex flex-col h-full min-h-[500px]">
+    <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg flex flex-col h-[80vh] min-h-[700px]">
       {/* Chat Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-lg">
-        <h3 className="text-lg font-semibold">AI Tutor - {subject}</h3>
-        <p className="text-sm opacity-90">Ask me anything about {subject}!</p>
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-lg flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">AI Tutor - {subject}</h3>
+          <p className="text-sm opacity-90">Ask me anything about {subject}!</p>
+        </div>
+        <div className="flex items-center gap-4 mt-2 md:mt-0">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            width="80"
+            height="60"
+            className="rounded border border-white shadow"
+            style={{ background: '#222' }}
+          />
+          <div className="ml-2">
+            <span className="font-semibold">Detected Emotion:</span>{' '}
+            <span className="text-yellow-200 text-lg">{emotion || 'Detecting...'}</span>
+          </div>
+        </div>
       </div>
-
       {/* Chat Messages */}
       <div className="flex-1 p-4 overflow-y-auto" ref={chatContainerRef} style={{ minHeight: 0 }}>
         {chat.length === 0 && (
