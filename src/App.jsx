@@ -3,6 +3,7 @@ import ChatBox from "./components/ChatBox";
 import QuizCard from "./components/QuizCard";
 import XPTracker from "./components/XPTracker";
 import PromptEditor from "./components/PromptEditor";
+import SentimentChat from "./components/SentimentChat";
 
 function App() {
   const [currentView, setCurrentView] = useState("chat");
@@ -290,6 +291,7 @@ function App() {
           </div>
         </div>
       </footer>
+      <SentimentChat />
     </div>
   );
 }
